@@ -10,7 +10,7 @@ services:
     env: node
     plan: free
     rootDir: backend
-    buildCommand: npm ci && npm run db:generate && npm run build
+    buildCommand: npm install && npm run db:generate && npm run build
     startCommand: npm start
     healthCheckPath: /health
     envVars:
@@ -38,7 +38,7 @@ services:
     env: node
     plan: free
     rootDir: frontend
-    buildCommand: npm ci && npm run build
+    buildCommand: npm install && npm run build
     startCommand: npm install -g serve && serve -s dist -l 3000
     envVars:
       - key: VITE_API_URL
