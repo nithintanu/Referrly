@@ -1,0 +1,219 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(SEEKER)
+  company   String?
+  skills    String?  // JSON array stored as string
+  experience Int?    // Years of experience
+  referallyCoins Int @default(0)
+  profile   Profile?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  sentRequests      ReferralRequest[] @relation("seeker")
+  receivedRequests  ReferralRequest[] @relation("referrer")
+  notifications     Notification[]
+  reviews           Review[]
+  coinTransactions  CoinTransaction[]
+  redemptions       RewardRedemption[]
+
+  @@index([email])
+  @@index([role])
+  @@index([company])
+}
+
+model Profile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bio       String?
+  profilePhoto String?
+  resumeUrl String?
+  resumeScore Int @default(0)
+  linkedinUrl String?
+  portfolioUrl String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ReferralRequest {
+  id        String   @id @default(cuid())
+  seekerId  String
+  seeker    User     @relation("seeker", fields: [seekerId], references: [id], onDelete: Cascade)
+  referrerId String
+  referrer  User     @relation("referrer", fields: [referrerId], references: [id], onDelete: Cascade)
+  
+  company   String
+  jobRole   String
+  jobDescription String
+  message   String?
+  resumeUrl String?
+  
+  status    RequestStatus @default(REQUESTED)
+  outcome   RequestOutcome?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  notifications Notification[]
+  reviews       Review[]
+  coinTransactions CoinTransaction[]
+
+  @@unique([seekerId, referrerId, company, jobRole])
+  @@index([seekerId])
+  @@index([referrerId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([company])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requestId String?
+  request   ReferralRequest? @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  
+  type      NotificationType
+  message   String
+  read      Boolean @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  requestId String
+  request   ReferralRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  reviewerId String
+  reviewer  User     @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  
+  rating    Int      // 1-5
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([requestId, reviewerId])
+  @@index([reviewerId])
+}
+
+enum Role {
+  SEEKER
+  REFERRER
+  ADMIN
+}
+
+enum RequestStatus {
+  REQUESTED
+  ACCEPTED
+  REFERRED
+  REJECTED
+}
+
+model RewardItem {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String
+  category    RewardCategory
+  coinCost    Int
+  stock       Int?
+  imageUrl    String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  redemptions RewardRedemption[]
+
+  @@index([category])
+  @@index([active])
+}
+
+model RewardRedemption {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewardItemId String
+  rewardItem   RewardItem @relation(fields: [rewardItemId], references: [id], onDelete: Restrict)
+  coinsSpent   Int
+  status       RedemptionStatus @default(PROCESSING)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  coinTransactions CoinTransaction[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model CoinTransaction {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type          CoinTransactionType
+  amount        Int
+  balanceAfter  Int
+  reason        String
+  requestId     String?
+  request       ReferralRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  redemptionId  String?
+  redemption    RewardRedemption? @relation(fields: [redemptionId], references: [id], onDelete: SetNull)
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+enum RequestOutcome {
+  SELECTED
+  NOT_SELECTED
+}
+
+enum NotificationType {
+  REQUEST_RECEIVED
+  REQUEST_ACCEPTED
+  REQUEST_REJECTED
+  REQUEST_REFERRED
+  REQUEST_OUTCOME_UPDATED
+  COINS_AWARDED
+  REWARD_REDEEMED
+  REVIEW_RECEIVED
+}
+
+enum RewardCategory {
+  GIFT_CARD
+  GOODIES
+  LEARNING
+  COMMUNITY
+}
+
+enum RedemptionStatus {
+  PROCESSING
+  FULFILLED
+  CANCELLED
+}
+
+enum CoinTransactionType {
+  REQUEST_ACCEPTED_BONUS
+  REFERRAL_COMPLETED_BONUS
+  REVIEW_RECEIVED_BONUS
+  REWARD_REDEMPTION
+}
