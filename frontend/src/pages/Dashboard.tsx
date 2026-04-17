@@ -86,6 +86,8 @@ const UserDashboard = ({ dashboard }: { dashboard: DashboardData }) => {
 
   return (
     <>
+      <WorkflowOverview dashboard={dashboard} />
+
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         <StatCard label="Total requests" value={stats.totalRequests} />
         <StatCard label="Requested" value={stats.requestedRequests} tone="amber" />
@@ -134,6 +136,68 @@ const UserDashboard = ({ dashboard }: { dashboard: DashboardData }) => {
         )}
       </section>
     </>
+  );
+};
+
+const WorkflowOverview = ({ dashboard }: { dashboard: DashboardData }) => {
+  const isReferrer = dashboard.role === "REFERRER";
+
+  const title = isReferrer ? "How this dashboard helps you move requests forward" : "How this dashboard helps you land referrals";
+  const description = isReferrer
+    ? "Keep your incoming requests organized, respond quickly, and watch how each completed step improves your credibility and rewards progress."
+    : "Track every request from outreach to outcome, stay on top of updates, and focus on the next action that moves your applications closer to a referral.";
+
+  const steps = isReferrer
+    ? [
+        {
+          title: "Review requests",
+          detail: "See who reached out, what role they want, and which requests still need your response.",
+        },
+        {
+          title: "Take action fast",
+          detail: "Accept, reject, or complete referrals with a clear status trail for both sides.",
+        },
+        {
+          title: "Build credibility",
+          detail: "Helpful actions, completed referrals, and feedback all strengthen your profile.",
+        },
+      ]
+    : [
+        {
+          title: "Find the right referrer",
+          detail: "Reach out with a focused request and keep your profile ready for review.",
+        },
+        {
+          title: "Track each stage",
+          detail: "Watch whether requests are pending, accepted, referred, or closed.",
+        },
+        {
+          title: "Follow through",
+          detail: "Review completed referrals and keep your next applications better informed.",
+        },
+      ];
+
+  return (
+    <section className="mb-8 overflow-hidden rounded-[2rem] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(49,182,218,0.18),_transparent_28%),linear-gradient(135deg,_#ffffff,_#f8fbff_48%,_#f4faf4)] p-6 shadow-sm md:p-8">
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
+        <div className="max-w-2xl">
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Core workflow</p>
+          <h2 className="mt-3 text-3xl font-semibold text-slate-950">{title}</h2>
+          <p className="mt-4 text-sm leading-7 text-slate-600">{description}</p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3 lg:max-w-3xl">
+          {steps.map((step, index) => (
+            <article key={step.title} className="rounded-[1.5rem] border border-white/80 bg-white/90 p-5 shadow-sm backdrop-blur">
+              <div className="inline-flex rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-900">
+                Step {index + 1}
+              </div>
+              <h3 className="mt-4 text-lg font-semibold text-slate-900">{step.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{step.detail}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 };
 
