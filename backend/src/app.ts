@@ -29,6 +29,18 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(uploadDirectory));
 
+app.get("/", (_req, res) => {
+  res.json({
+    success: true,
+    message: "Referrly API is running",
+    data: {
+      health: "/health",
+      auth: "/api/auth",
+      api: "/api",
+    },
+  });
+});
+
 app.get("/health", (_req, res) => {
   res.json({
     success: true,
