@@ -17,6 +17,12 @@ export const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<"SEEKER" | "REFERRER">(initialRole);
+  const [company, setCompany] = useState("");
+  const [skills, setSkills] = useState("");
+  const [experience, setExperience] = useState("");
+  const [bio, setBio] = useState("");
+  const [linkedinUrl, setLinkedinUrl] = useState("");
+  const [portfolioUrl, setPortfolioUrl] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -30,7 +36,21 @@ export const Register = () => {
     setError("");
 
     try {
-      await register({ name, email, password, role });
+      await register({
+        name,
+        email,
+        password,
+        role,
+        company,
+        skills: skills
+          .split(",")
+          .map((skill) => skill.trim())
+          .filter(Boolean),
+        experience: experience ? Number(experience) : null,
+        bio,
+        linkedinUrl,
+        portfolioUrl,
+      });
       navigate("/dashboard");
     } catch (err) {
       setError(getErrorMessage(err, "Registration failed"));
@@ -45,7 +65,7 @@ export const Register = () => {
         <section className="rounded-[2rem] border border-slate-200 bg-white p-8 shadow-sm md:p-10">
           <h1 className="text-3xl font-semibold text-slate-900">Create your account</h1>
           <p className="mt-2 text-sm text-slate-600">
-            Choose your role, create a secure login, and step into the full referral workflow.
+            Create your login and add the basics now, so your profile is useful from the moment it appears.
           </p>
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
@@ -119,6 +139,94 @@ export const Register = () => {
                     Review incoming requests, accept or reject them, and mark referrals complete.
                   </p>
                 </button>
+              </div>
+            </div>
+
+            <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50/80 p-5">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="text-base font-semibold text-slate-900">Basic profile details</h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    These fields save an extra setup step later and help keep public profiles complete.
+                  </p>
+                </div>
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  {role === "REFERRER" ? "Required for referrers" : "Optional for seekers"}
+                </span>
+              </div>
+
+              <div className="mt-5 grid gap-5 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Company</label>
+                  <input
+                    type="text"
+                    value={company}
+                    onChange={(event) => setCompany(event.target.value)}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-4 focus:ring-sky-100"
+                    placeholder={role === "REFERRER" ? "Current company" : "Target companies"}
+                    required={role === "REFERRER"}
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Experience (years)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={experience}
+                    onChange={(event) => setExperience(event.target.value)}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-4 focus:ring-sky-100"
+                    placeholder="3"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-5">
+                <label className="mb-2 block text-sm font-medium text-slate-700">Skills</label>
+                <textarea
+                  rows={3}
+                  value={skills}
+                  onChange={(event) => setSkills(event.target.value)}
+                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-4 focus:ring-sky-100"
+                  placeholder="React, Node.js, PostgreSQL"
+                  required={role === "REFERRER"}
+                />
+              </div>
+
+              <div className="mt-5">
+                <label className="mb-2 block text-sm font-medium text-slate-700">Bio</label>
+                <textarea
+                  rows={4}
+                  value={bio}
+                  onChange={(event) => setBio(event.target.value)}
+                  className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-4 focus:ring-sky-100"
+                  placeholder="Add a short professional summary."
+                  required={role === "REFERRER"}
+                />
+              </div>
+
+              <div className="mt-5 grid gap-5 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">LinkedIn URL</label>
+                  <input
+                    type="url"
+                    value={linkedinUrl}
+                    onChange={(event) => setLinkedinUrl(event.target.value)}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-4 focus:ring-sky-100"
+                    placeholder="https://linkedin.com/in/your-profile"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700">Portfolio URL</label>
+                  <input
+                    type="url"
+                    value={portfolioUrl}
+                    onChange={(event) => setPortfolioUrl(event.target.value)}
+                    className="w-full rounded-2xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-4 focus:ring-sky-100"
+                    placeholder="https://your-site.dev"
+                  />
+                </div>
               </div>
             </div>
 

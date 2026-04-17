@@ -18,6 +18,12 @@ interface RegisterInput {
   password: string;
   name: string;
   role?: string;
+  company?: string | null;
+  skills?: string[] | string;
+  experience?: number | null;
+  bio?: string | null;
+  linkedinUrl?: string | null;
+  portfolioUrl?: string | null;
 }
 
 interface UpdateProfileInput {
@@ -34,10 +40,32 @@ interface UpdateProfileInput {
 const PUBLIC_REGISTRATION_ROLES: Role[] = ["SEEKER", "REFERRER"];
 
 export const authService = {
-  async register({ email, password, name, role = "SEEKER" }: RegisterInput) {
+  async register({
+    email,
+    password,
+    name,
+    role = "SEEKER",
+    company,
+    skills,
+    experience,
+    bio,
+    linkedinUrl,
+    portfolioUrl,
+  }: RegisterInput) {
     const normalizedEmail = normalizeEmail(email);
     const normalizedName = name.trim();
     const selectedRole = ensureValidRole(role, PUBLIC_REGISTRATION_ROLES);
+    const parsedSkills = parseSkills(skills ?? []);
+    const sanitizedCompany = normalizeOptionalString(company);
+    const sanitizedBio = normalizeOptionalString(bio);
+    const sanitizedLinkedinUrl = normalizeOptionalString(linkedinUrl);
+    const sanitizedPortfolioUrl = normalizeOptionalString(portfolioUrl);
+    const sanitizedExperience =
+      typeof experience === "number" && Number.isFinite(experience)
+        ? Math.max(0, experience)
+        : experience === null || experience === undefined
+          ? null
+          : undefined;
 
     if (normalizedName.length < 2) {
       throw new AppError(400, "Name must be at least 2 characters long");
@@ -45,6 +73,20 @@ export const authService = {
 
     if (password.length < 8) {
       throw new AppError(400, "Password must be at least 8 characters long");
+    }
+
+    if (selectedRole === "REFERRER") {
+      if (!sanitizedCompany) {
+        throw new AppError(400, "Company is required for referrers");
+      }
+
+      if (parsedSkills.length === 0) {
+        throw new AppError(400, "At least one skill is required for referrers");
+      }
+
+      if (!sanitizedBio) {
+        throw new AppError(400, "Bio is required for referrers");
+      }
     }
 
     const existingUser = await prisma.user.findUnique({
@@ -63,8 +105,15 @@ export const authService = {
         password: hashedPassword,
         name: normalizedName,
         role: selectedRole,
+        company: sanitizedCompany,
+        skills: serializeSkills(parsedSkills),
+        experience: sanitizedExperience,
         profile: {
-          create: {},
+          create: {
+            bio: sanitizedBio,
+            linkedinUrl: sanitizedLinkedinUrl,
+            portfolioUrl: sanitizedPortfolioUrl,
+          },
         },
       },
       select: publicUserSelect,

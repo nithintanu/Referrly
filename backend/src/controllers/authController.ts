@@ -10,6 +10,12 @@ export const authController = {
       password: requireString(req.body.password, "Password"),
       name: requireString(req.body.name, "Name"),
       role: req.body.role,
+      company: req.body.company,
+      skills: req.body.skills,
+      experience: req.body.experience,
+      bio: req.body.bio,
+      linkedinUrl: req.body.linkedinUrl,
+      portfolioUrl: req.body.portfolioUrl,
     });
 
     return sendResponse(res, 201, "User registered successfully", result);

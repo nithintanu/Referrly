@@ -107,6 +107,12 @@ export interface RegisterPayload {
   email: string;
   password: string;
   role: Extract<Role, "SEEKER" | "REFERRER">;
+  company?: string;
+  skills?: string[];
+  experience?: number | null;
+  bio?: string;
+  linkedinUrl?: string;
+  portfolioUrl?: string;
 }
 
 export interface LoginPayload {
